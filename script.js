@@ -14,6 +14,9 @@ $$('[data-choice]').forEach(btn=>btn.addEventListener('click',()=>{const out=$('
 $$('img').forEach(img=>img.addEventListener('error',()=>{img.style.display='none'}));
 
 (()=>{
+  const ticker=$('.ticker span');
+  if(ticker)ticker.textContent=ticker.textContent.replace('GUITAR','SURPRISE');
+
   const introYes=$('#introYes');
   introYes?.addEventListener('click',()=>{
     try{history.replaceState(null,'',location.pathname+location.search+'#home')}catch(e){location.hash='home'}
