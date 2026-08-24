@@ -288,7 +288,6 @@ const style=document.createElement('style');style.textContent='.confetti{positio
     musicToggle.classList.toggle('is-playing', !muted && !music.paused);
   });
 
-  // Lightweight synthesized UI sounds — no extra sound files required.
   const playSfx = (kind = 'click') => {
     ensureAudioContext();
     if (!audioCtx || muted) return;
@@ -330,4 +329,52 @@ const style=document.createElement('style');style.textContent='.confetti{positio
     if (el.id === 'menuBtn') kind = 'menu';
     playSfx(kind);
   }, { passive: true });
+})();
+
+/* ===== FINAL INTRO BUTTON BEHAVIOR FIX ===== */
+(() => {
+  const intro = document.getElementById('introGate');
+  const yes = document.getElementById('introYes');
+  const no = document.getElementById('introNo');
+  const reaction = document.getElementById('introReaction');
+  const progress = document.querySelector('.intro-progress');
+  const bar = document.querySelector('.intro-progress span');
+  if (!intro || !yes || !no || !reaction) return;
+
+  // Reserve reaction space so changing the message never shifts the YES button.
+  reaction.style.minHeight = window.matchMedia('(max-width:600px)').matches ? '62px' : '42px';
+
+  let noCount = 0;
+  const messages = [
+    'HOW DARE U 😭',
+    'Excuse me??? That button is illegal. 😂',
+    'Nice try. The surprise is still waiting. 😌',
+    'Bezati... PRESS YES. 🕷️',
+    'Okay fine, last chance. 😭❤️'
+  ];
+
+  yes.addEventListener('click', (event) => {
+    event.stopImmediatePropagation();
+    yes.style.removeProperty('transform');
+    reaction.textContent = 'Okayyyy Bezati... opening your birthday universe 🕷️❤️';
+    progress?.classList.add('show');
+    if (bar) bar.style.width = '100%';
+    setTimeout(() => intro.classList.add('hidden'), 850);
+  }, true);
+
+  no.addEventListener('click', (event) => {
+    event.stopImmediatePropagation();
+    noCount++;
+    reaction.textContent = messages[Math.min(noCount - 1, messages.length - 1)];
+    const x = Math.random() * 72 - 36;
+    const y = Math.random() * 30 - 15;
+    const r = Math.random() * 8 - 4;
+    // Inline !important intentionally beats the mobile hover stability rule.
+    no.style.setProperty('transform', `translate(${x}px, ${y}px) rotate(${r}deg)`, 'important');
+    if (noCount >= 3) {
+      no.textContent = 'YES, OKAY 😭';
+      no.classList.remove('ghost');
+      no.classList.add('primary');
+    }
+  }, true);
 })();
