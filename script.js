@@ -19,3 +19,57 @@ $$('[data-choice]').forEach(btn=>btn.addEventListener('click',()=>{const out=$('
 // Music and lightweight button sounds.
 (()=>{const music=$('#bgMusic'),toggle=$('#musicToggle');if(!music)return;music.loop=true;music.volume=.42;let ctx=null,muted=false;function start(){if(muted)return;music.play()?.catch?.(()=>{});toggle?.classList.toggle('is-playing',!music.paused)}['pointerdown','touchstart','keydown'].forEach(type=>document.addEventListener(type,start,{once:true,passive:true}));$('#introYes')?.addEventListener('click',start);toggle?.addEventListener('click',e=>{e.stopPropagation();muted=!muted;music.muted=muted;if(!muted)start();toggle.textContent=muted?'🔇':'♫';toggle.setAttribute('aria-pressed',String(muted))});document.addEventListener('pointerdown',e=>{const el=e.target.closest('button,a');if(!el||el.id==='musicToggle'||muted)return;const C=window.AudioContext||window.webkitAudioContext;if(!C)return;if(!ctx)ctx=new C();if(ctx.state==='suspended')ctx.resume();const o=ctx.createOscillator(),g=ctx.createGain(),now=ctx.currentTime;o.connect(g);g.connect(ctx.destination);o.frequency.setValueAtTime(440,now);o.frequency.exponentialRampToValueAtTime(650,now+.06);g.gain.setValueAtTime(.025,now);g.gain.exponentialRampToValueAtTime(.0001,now+.07);o.start(now);o.stop(now+.08)},{passive:true})})();
 $$('img').forEach(img=>img.addEventListener('error',()=>{img.style.display='none'}));
+
+// 2026-08-24 birthday-flow fixes and additions.
+(()=>{
+  const introYes=$('#introYes');
+  introYes?.addEventListener('click',()=>{
+    // Always enter at the HOME/header area even when the URL previously had #memories.
+    try{history.replaceState(null,'',location.pathname+location.search+'#home')}catch(e){location.hash='home'}
+    setTimeout(()=>{
+      const home=$('#home');
+      if(home){home.scrollIntoView({behavior:'auto',block:'start'})}else{window.scrollTo({top:0,left:0,behavior:'auto'})}
+    },880);
+  });
+
+  // Memory cards now begin with the quote and flip to the photograph.
+  const memoryHelp=$('#memories .section-head p');
+  if(memoryHelp)memoryHelp.textContent='Tap any quote to flip it and reveal the memory. ❤️';
+  $$('.memory-card').forEach(card=>{
+    card.setAttribute('aria-pressed','false');
+    const quoteSide=card.querySelector('.memory-back');
+    const photoSide=card.querySelector('.memory-front');
+    quoteSide?.querySelector('em')?.replaceChildren(document.createTextNode('Tap to reveal the memory ❤️'));
+    if(photoSide){
+      let hint=photoSide.querySelector('.memory-photo-hint');
+      if(!hint){hint=document.createElement('small');hint.className='memory-photo-hint';hint.textContent='Tap again for the quote';photoSide.appendChild(hint)}
+    }
+  });
+
+  // Add a second playful "important question" card without changing the existing arcade.
+  const activityGrid=$('.activity-grid');
+  if(activityGrid&&!$('#lesbianQuestion')){
+    const card=document.createElement('article');
+    card.className='activity-card choice-card funny-question-card';
+    card.id='lesbianQuestion';
+    card.innerHTML='<div class="activity-icon">🏳️‍🌈😂</div><h3>ANOTHER IMPORTANT QUESTION</h3><p>I know you’re lesbian, right? 👀😂</p><div class="choice-buttons"><button class="btn ghost" type="button" data-lesbian-choice="yes">YES 😌</button><button class="btn primary" type="button" data-lesbian-choice="no">NO 😂</button></div><div class="choice-result" id="lesbianChoiceResult" aria-live="polite"></div>';
+    activityGrid.appendChild(card);
+    card.querySelectorAll('[data-lesbian-choice]').forEach(btn=>btn.addEventListener('click',()=>{
+      const out=$('#lesbianChoiceResult');
+      if(!out)return;
+      out.textContent=btn.dataset.lesbianChoice==='yes'?'AHA! Finally admitted it 😂📸 Evidence saved in the Bezati archives!':'Hmmmm… suspicious. The lie detector says: BEEP BEEP BEEP 😂🚨';
+      card.classList.remove('question-pop');void card.offsetWidth;card.classList.add('question-pop');
+    }));
+  }
+
+  // The guitar reminder must stay secret until the gift itself is revealed.
+  const finalParas=$$('.final-copy p');
+  const guitarReminder=finalParas.find(p=>p.textContent.toLowerCase().includes('guitar song'));
+  if(guitarReminder){guitarReminder.classList.add('post-gift-reminder');guitarReminder.hidden=true}
+  $('#giftReveal')?.addEventListener('click',()=>{
+    // The existing gift handler ignores locked clicks; mirror the same unlock timestamp here.
+    const unlock=Date.UTC(2026,7,25,18,30,0);
+    if(Date.now()<unlock)return;
+    if(guitarReminder){guitarReminder.hidden=false;guitarReminder.classList.add('revealed-reminder')}
+  });
+})();
