@@ -49,3 +49,130 @@ $$('img').forEach(img=>img.addEventListener('error',()=>{img.style.display='none
   if(guitarReminder){guitarReminder.classList.add('post-gift-reminder');guitarReminder.hidden=true}
   $('#giftReveal')?.addEventListener('click',()=>{const unlock=Date.UTC(2026,7,25,18,30,0);if(Date.now()<unlock)return;if(guitarReminder){guitarReminder.hidden=false;guitarReminder.classList.add('revealed-reminder')}});
 })();
+
+// Final surprise: responsive Spotify-inspired birthday song player.
+(()=>{
+  if($('#lastSurprise'))return;
+  const finalSection=$('.final-section');
+  const giftSection=$('#gift');
+  if(!giftSection||!finalSection)return;
+
+  const section=document.createElement('section');
+  section.className='section song-surprise-section';
+  section.id='lastSurprise';
+  section.innerHTML=`
+    <div class="song-ambient" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="song-surprise-shell">
+      <div class="song-pre-reveal" id="songPreReveal">
+        <div class="song-pre-icon" aria-hidden="true">🎧</div>
+        <div class="eyebrow">OKAY... ONE LAST SURPRISE ❤️</div>
+        <h2>Bezati, headphones <span>on.</span></h2>
+        <p>Okay Bezati… now take your headphones, get comfortable, and be ready for the emotional part. 🥹🎧❤️</p>
+        <p class="song-pre-small">No skipping. No laughing at me. Just listen till the end. 😌💗</p>
+        <button class="btn song-reveal-btn" id="songRevealBtn" type="button">I'M READY 🎧❤️</button>
+      </div>
+
+      <div class="song-reveal-content" id="songRevealContent" hidden>
+        <div class="song-heading-wrap">
+          <div class="eyebrow">THE REAL FINAL SURPRISE 🎵</div>
+          <h2>This is only made for you by purely <span>SK 💗😌</span></h2>
+          <p>I couldn't fit every memory and every feeling into a normal birthday wish… so I turned a little piece of it into a song for you. ❤️</p>
+        </div>
+
+        <div class="spotify-player" id="bezatiPlayer">
+          <div class="player-glow" aria-hidden="true"></div>
+          <div class="player-art-wrap">
+            <img class="player-cover" src="assets/song/happy-birthday-bezati-cover.png" alt="Happy Birthday Bezatiiiii song cover" loading="lazy">
+            <div class="player-equalizer" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+
+          <div class="player-body">
+            <div class="player-topline"><span>FOR YOU, ALWAYS 💗</span><button class="player-heart" type="button" aria-label="Love this song" aria-pressed="true">♥</button></div>
+            <div class="player-meta">
+              <h3>Happy Birthday Bezatiiiii ❤️</h3>
+              <p>Birthday Wish Song • SK</p>
+            </div>
+
+            <audio id="bezatiSong" src="assets/audio/happy-birthday-bezati.mp3" preload="metadata"></audio>
+
+            <div class="player-progress-wrap">
+              <input class="player-progress" id="songProgress" type="range" min="0" max="406" value="0" step="0.01" aria-label="Song progress">
+              <div class="player-times"><span id="songCurrentTime">0:00</span><span id="songDuration">6:46</span></div>
+            </div>
+
+            <div class="player-controls" aria-label="Music controls">
+              <button class="player-skip" id="songBack" type="button" aria-label="Back 10 seconds">↶<small>10</small></button>
+              <button class="player-play" id="songPlay" type="button" aria-label="Play birthday song" aria-pressed="false"><span class="play-icon">▶</span></button>
+              <button class="player-skip" id="songForward" type="button" aria-label="Forward 10 seconds">↷<small>10</small></button>
+            </div>
+
+            <div class="player-volume-row">
+              <span aria-hidden="true">🔈</span>
+              <input class="player-volume" id="songVolume" type="range" min="0" max="1" value="0.85" step="0.01" aria-label="Song volume">
+              <span aria-hidden="true">🔊</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="song-after-note" id="songAfterNote" hidden>
+          <span>💗</span>
+          <p>Happy Birthday, Bezati. Some memories become stories… and some memories become songs. This one is yours. 😌❤️</p>
+        </div>
+      </div>
+    </div>`;
+  finalSection.parentNode.insertBefore(section,finalSection);
+
+  const revealBtn=$('#songRevealBtn'),pre=$('#songPreReveal'),content=$('#songRevealContent');
+  const song=$('#bezatiSong'),play=$('#songPlay'),progress=$('#songProgress'),current=$('#songCurrentTime'),duration=$('#songDuration'),volume=$('#songVolume');
+  const back=$('#songBack'),forward=$('#songForward'),player=$('#bezatiPlayer'),after=$('#songAfterNote'),bg=$('#bgMusic'),bgToggle=$('#musicToggle');
+  let revealed=false;
+
+  const formatTime=seconds=>{if(!Number.isFinite(seconds)||seconds<0)return'0:00';const m=Math.floor(seconds/60),s=Math.floor(seconds%60);return`${m}:${String(s).padStart(2,'0')}`};
+  const setProgressFill=()=>{const max=Number(progress.max)||406,value=Number(progress.value)||0;progress.style.setProperty('--progress',`${Math.max(0,Math.min(100,value/max*100))}%`)};
+  const setVolumeFill=()=>volume.style.setProperty('--volume',`${Math.round(Number(volume.value)*100)}%`);
+
+  revealBtn?.addEventListener('click',()=>{
+    revealed=true;
+    pre?.classList.add('is-leaving');
+    setTimeout(()=>{
+      if(pre)pre.hidden=true;
+      if(content){content.hidden=false;requestAnimationFrame(()=>content.classList.add('is-visible'))}
+      section.scrollIntoView({behavior:'smooth',block:'start'});
+    },360);
+  });
+
+  function setPlayingUI(isPlaying){
+    player?.classList.toggle('is-playing',isPlaying);
+    play?.setAttribute('aria-pressed',String(isPlaying));
+    play?.setAttribute('aria-label',isPlaying?'Pause birthday song':'Play birthday song');
+    const icon=play?.querySelector('.play-icon');if(icon)icon.textContent=isPlaying?'Ⅱ':'▶';
+  }
+
+  async function startSong(){
+    if(!song)return;
+    if(bg&&!bg.paused)bg.pause();
+    bgToggle?.classList.remove('is-playing');
+    try{await song.play();setPlayingUI(true)}catch(e){showToast('Tap play once more to start the song 🎧❤️')}
+  }
+
+  play?.addEventListener('click',()=>{if(!song)return;if(song.paused)startSong();else{song.pause();setPlayingUI(false)}});
+  back?.addEventListener('click',()=>{if(song)song.currentTime=Math.max(0,song.currentTime-10)});
+  forward?.addEventListener('click',()=>{if(song)song.currentTime=Math.min(song.duration||406,song.currentTime+10)});
+
+  song?.addEventListener('loadedmetadata',()=>{const d=Number.isFinite(song.duration)?song.duration:406;progress.max=d;duration.textContent=formatTime(d);setProgressFill()});
+  song?.addEventListener('timeupdate',()=>{if(!progress.matches(':active'))progress.value=song.currentTime||0;current.textContent=formatTime(song.currentTime);setProgressFill()});
+  song?.addEventListener('play',()=>{if(bg&&!bg.paused)bg.pause();setPlayingUI(true)});
+  song?.addEventListener('pause',()=>setPlayingUI(false));
+  song?.addEventListener('ended',()=>{setPlayingUI(false);progress.value=progress.max;setProgressFill();if(after){after.hidden=false;requestAnimationFrame(()=>after.classList.add('show'))}});
+  song?.addEventListener('error',()=>showToast('The birthday song file is not available yet. ❤️'));
+
+  progress?.addEventListener('input',()=>{if(song)song.currentTime=Number(progress.value);current.textContent=formatTime(Number(progress.value));setProgressFill()});
+  volume?.addEventListener('input',()=>{if(song)song.volume=Number(volume.value);setVolumeFill()});
+  if(song)song.volume=.85;setProgressFill();setVolumeFill();
+
+  // Keep the background soundtrack out of the emotional song section once the song has begun.
+  document.addEventListener('play',e=>{if(e.target===song&&bg&&!bg.paused)bg.pause()},true);
+
+  // Prevent global button-sound chirps from sitting on top of the emotional player controls.
+  section.addEventListener('pointerdown',e=>e.stopPropagation());
+})();
