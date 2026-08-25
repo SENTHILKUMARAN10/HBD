@@ -50,6 +50,21 @@ $$('img').forEach(img=>img.addEventListener('error',()=>{img.style.display='none
   $('#giftReveal')?.addEventListener('click',()=>{const unlock=Date.UTC(2026,7,25,18,30,0);if(Date.now()<unlock)return;if(guitarReminder){guitarReminder.hidden=false;guitarReminder.classList.add('revealed-reminder')}});
 })();
 
+// Audit Desk launch card on the birthday page.
+(()=>{
+  if($('#auditDeskLaunch'))return;
+  const gift=$('#gift');
+  if(!gift)return;
+  const style=document.createElement('style');
+  style.textContent=`.audit-desk-launch{padding:70px 20px;display:flex;justify-content:center}.audit-desk-card{width:min(860px,100%);padding:34px;border:1px solid rgba(255,255,255,.12);border-radius:26px;background:linear-gradient(135deg,rgba(10,25,45,.96),rgba(17,30,61,.96));box-shadow:0 24px 60px rgba(0,0,0,.28);text-align:center}.audit-desk-card .audit-icon{font-size:42px;margin-bottom:10px}.audit-desk-card h2{margin:8px 0 10px;font-size:clamp(28px,5vw,48px)}.audit-desk-card h2 span{color:#72dfff}.audit-desk-card p{max-width:650px;margin:0 auto 22px;color:#b8c9db;line-height:1.7}.audit-desk-card .btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none;min-width:250px}@media(max-width:600px){.audit-desk-launch{padding:45px 15px}.audit-desk-card{padding:24px 18px}.audit-desk-card .btn{width:100%;min-width:0}}`;
+  document.head.appendChild(style);
+  const section=document.createElement('section');
+  section.className='audit-desk-launch';
+  section.id='auditDeskLaunch';
+  section.innerHTML=`<div class="audit-desk-card"><div class="audit-icon">💼</div><div class="eyebrow">A LITTLE DESK FOR AFTER THE BIRTHDAY</div><h2>Bezati's <span>Audit Desk</span></h2><p>Your own tiny work corner with GST, TDS, variance and date tools — made so this birthday website can stay useful even after today. 😌💗</p><a class="btn primary" href="audit.html">OPEN AUDIT DESK →</a></div>`;
+  gift.parentNode.insertBefore(section,gift);
+})();
+
 // Final surprise: responsive Spotify-inspired birthday song player.
 (()=>{
   if($('#lastSurprise'))return;
@@ -170,9 +185,6 @@ $$('img').forEach(img=>img.addEventListener('error',()=>{img.style.display='none
   volume?.addEventListener('input',()=>{if(song)song.volume=Number(volume.value);setVolumeFill()});
   if(song)song.volume=.85;setProgressFill();setVolumeFill();
 
-  // Keep the background soundtrack out of the emotional song section once the song has begun.
   document.addEventListener('play',e=>{if(e.target===song&&bg&&!bg.paused)bg.pause()},true);
-
-  // Prevent global button-sound chirps from sitting on top of the emotional player controls.
   section.addEventListener('pointerdown',e=>e.stopPropagation());
 })();
